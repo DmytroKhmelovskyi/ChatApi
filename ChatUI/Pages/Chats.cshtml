@@ -1,0 +1,32 @@
+﻿@page
+@model ChatUI.Pages.ChatsModel
+@{
+    ViewData["Title"] = "Chats";
+}
+
+<h1>Chats</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Chats[0].ChatName)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Chats) {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ChatName)
+                </td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
