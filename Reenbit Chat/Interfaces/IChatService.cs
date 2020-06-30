@@ -7,9 +7,9 @@ namespace Reenbit_Chat.Interfaces
 {
     public interface IChatService
     {
-        Task<List<Chat>> GetUserChats(int userId);
+        Task<List<Chat>> GetUserChats();
 
-        Task<List<MessageViewModel>> GetChatMessages(int chatId);
+        Task<List<MessageViewModel>> GetChatMessages(int chatId, int page, int count);
         
     }
 }

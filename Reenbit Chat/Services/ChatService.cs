@@ -1,10 +1,12 @@
 ﻿using Domain;
 using Microsoft.EntityFrameworkCore;
+using Reenbit_Chat.Configurations;
 using Reenbit_Chat.Interfaces;
 using Reenbit_Chat.Models;
 using Reenbit_Chat.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Reenbit_Chat.Services
@@ -12,29 +14,32 @@ namespace Reenbit_Chat.Services
     public class ChatService : IChatService
     {
         private ApplicationContext _context;
-        private const int USER_ID = 1;
+        private ClaimsPrincipal _user;
 
-        public ChatService(ApplicationContext context)
+        private int UserId => int.Parse(_user.FindFirstValue(AuthOptions.USER_ID_CLAIM));
+
+        public ChatService(ApplicationContext context, ClaimsPrincipal user)
         {
             _context = context;
+            _user = user;
         }
 
-        public async Task<List<Chat>> GetUserChats(int userId)
+        public async Task<List<Chat>> GetUserChats()
         {
             return await _context.Chats
                 .AsNoTracking()
                 .Include(c => c.ChatUsers)
-                .Where(c => c.ChatUsers.Any(u => u.UserId == userId))
+                .Where(c => c.ChatUsers.Any(u => u.UserId == UserId))
                 .ToListAsync();
         }
 
-        public async Task<List<MessageViewModel>> GetChatMessages(int chatId)
+        public async Task<List<MessageViewModel>> GetChatMessages(int chatId, int page, int count)
         {
             return await _context.Messages
                 .Include(m => m.MessageUsers)
                 .AsNoTracking()
                 .Where(m => m.ChatId == chatId
-                            && m.MessageUsers.Any(mu => mu.UserId == USER_ID))
+                            && m.MessageUsers.Any(mu => mu.UserId == UserId))
                 .Select(m => new MessageViewModel
                 {
                     Id = m.Id,
@@ -44,6 +49,8 @@ namespace Reenbit_Chat.Services
                     DateTime = m.DateTime
                 })
                 .OrderBy(m => m.DateTime)
+                .Take(count)
+                .Skip(count * (page - 1))
                 .ToListAsync();
         }
     }

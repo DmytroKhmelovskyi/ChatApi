@@ -1,4 +1,5 @@
 ﻿using Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Reenbit_Chat.Interfaces;
 using System.Collections.Generic;
@@ -8,12 +9,12 @@ namespace Reenbit_Chat.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ChatController : ControllerBase
     {
         private IChatService _chatService;
         private IMessageSerivce _messageSerivce;
         private const int USER_ID = 1;
-
 
         public ChatController(IChatService chatService, IMessageSerivce messageSerivce)
         {
@@ -24,17 +25,17 @@ namespace Reenbit_Chat.Controllers
         [HttpGet]
         public async Task<ICollection<Chat>> GetUserChats()
         {
-            return await _chatService.GetUserChats(USER_ID);
+            return await _chatService.GetUserChats();
         }
 
         [HttpGet("{chatId:int}/messages")]
-        public async Task<IActionResult> GetChatMessages([FromRoute] int chatId)
+        public async Task<IActionResult> GetChatMessages([FromRoute] int chatId, [FromQuery]int page, [FromQuery]int count = 20)
         {
             if (chatId <= 0)
             {
                 return BadRequest("Incorrect chat id.");
             }
-            var messages = await _chatService.GetChatMessages(chatId);
+            var messages = await _chatService.GetChatMessages(chatId, page, count);
 
             return Ok(messages);
         }
@@ -52,7 +53,7 @@ namespace Reenbit_Chat.Controllers
                 return BadRequest("Message cannot be empty");
             }
 
-            var message = await _messageSerivce.Send(USER_ID, chatId, text);
+            var message = await _messageSerivce.Send(chatId, text);
             return Ok(message);
         }
 
